@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "func-names": ["error", "never"],
+    "operator-assignment":"off",
+    "no-trailing-spaces":"off",
+    "no-multiple-empty-lines": "off",
+    "comma-dangle":"off",
+    "no-await-in-loop": "off",
+    "max-len": "off",
+    "parser": "babel-eslint"
+  },
+  "plugins": [
+    "security"
+  ],
+  "extends": [
+    "plugin:security/recommended",
+    "airbnb",
+  ],
+}
