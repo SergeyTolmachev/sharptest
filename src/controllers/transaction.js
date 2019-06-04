@@ -15,11 +15,7 @@ router.get('/list', isAuth, async (req, res, next) => {
 
     const transactions = await Transaction.findAll({
       where: {
-        [Op.or]: [{
-          receiverId: id,
-        }, {
-          senderId: id,
-        }],
+        userId: id,
       },
       order: [['id', 'DESC']],
     });
@@ -33,9 +29,12 @@ router.post('/', isAuth, async (req, res, next) => {
   try {
     const { receiverId, sum } = req.body;
     const { id } = req.user;
+    if (!receiverId) {
+      return res.status(400).json({ _error: 'There is no receiverId in system with the same id' });
+    }
     const sender = await User.findOne({ where: { id } });
     const receiver = await User.findOne({ where: { id: receiverId } });
-    if (!receiver || !receiverId) {
+    if (!receiver) {
       return res.status(400).json({ _error: 'There is no receiver in system with the same id' });
     }
     if (Number(sender.dataValues.balance) < Number(sum)) {
@@ -45,22 +44,33 @@ router.post('/', isAuth, async (req, res, next) => {
     const trans = await sequelize.transaction();
 
     try {
-      await User.update({ balance: sender.dataValues.balance - sum }, { where: { id }, transaction: trans });
-      await User.update({ balance: receiver.dataValues.balance + sum }, { where: { id: receiverId }, ransaction: trans });
+      await User.update({ balance: +sender.dataValues.balance - sum }, { where: { id }, transaction: trans });
+      await User.update({ balance: +receiver.dataValues.balance + sum }, { where: { id: receiverId }, ransaction: trans });
       transaction = await Transaction.create({
-        senderId: id,
-        receiverId,
+        userId: id,
+        agentId: receiverId,
         sum,
-        senderName: sender.dataValues.name,
-        receiverName: receiver.dataValues.name,
+        agentName: receiver.dataValues.name,
+        type: 'credit',
+        balance: +sender.dataValues.balance - sum,
+      }, { transaction: trans });
+      await Transaction.create({
+        userId: receiverId,
+        agentId: id,
+        sum,
+        agentName: sender.dataValues.name,
+        type: 'debt',
+        balance: +receiver.dataValues.balance + sum,
       }, { transaction: trans });
       trans.commit();
     } catch (error) {
+      console.log(error);
       trans.rollback();
       return next(error);
     }
     return res.status(200).json(transaction);
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ _error: 'Internal server error' });
   }
 });

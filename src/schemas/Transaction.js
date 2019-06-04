@@ -4,7 +4,7 @@ const sequelize = require('../config/postgres');
 const User = require('../schemas/User');
 
 const Transaction = sequelize.define('transaction', {
-  senderId: {
+  userId: {
     type: Sequelize.INTEGER,
     reference: {
       model: User,
@@ -16,7 +16,7 @@ const Transaction = sequelize.define('transaction', {
       },
     },
   },
-  receiverId: {
+  agentId: {
     type: Sequelize.INTEGER,
     reference: {
       model: User,
@@ -36,7 +36,7 @@ const Transaction = sequelize.define('transaction', {
       }
     }
   },
-  senderName: {
+  agentName: {
     type: Sequelize.STRING(50),
     validate: {
       is: {
@@ -45,14 +45,16 @@ const Transaction = sequelize.define('transaction', {
       },
     },
   },
-  receiverName: {
-    type: Sequelize.STRING(50),
+  type: {
+    type: Sequelize.ENUM('debt', 'credit'),
+  },
+  balance: {
+    type: Sequelize.INTEGER,
     validate: {
-      is: {
-        args: /^[a-z\s]+$/i,
-        msg: 'Must be a valid human name',
+      isInt: {
+        msg: 'Must be a valid integer',
       },
-    },
+    }
   },
 }, {
   timestamps: true,

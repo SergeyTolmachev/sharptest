@@ -63,7 +63,7 @@ router.post('/', async (req, res, next) => {
         name, email, password, balance: 500
       });
       const token = await getToken({ email: user.email });
-      return res.status(200).json({ user, token });
+      return res.status(201).json({ user, token });
     } catch (error) {
       return next(error);
     }

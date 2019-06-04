@@ -16,12 +16,12 @@ router.post('/', async (req, res, next) => {
     }
     email = String(email);
     password = String(password);
-    const user = await User.findOne({ where: { email, password } });
+    const user = await User.findOne({ where: { email, password }, attributes: ['id', 'name', 'email', 'balance'] });
     if (!user) {
       return res.status(400).json({ _error: 'There is no user with email-password pair' });
     }
     const token = await getToken({ email, id: user.dataValues.id });
-    return res.status(200).json(token);
+    return res.status(200).json({ token, user });
   } catch (error) {
     return res.status(500).json({ _error: 'Internal server error' });
   }
